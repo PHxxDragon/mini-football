@@ -17,7 +17,7 @@ class TitleScreen(State):
             if event.type == pg.MOUSEBUTTONDOWN:
                 self.done = True
 
-    def update(self, now, mouse_pos):
+    def update(self, now, mouse_pos, keyboard):
         pass
 
     def draw(self, surface, interpolate):

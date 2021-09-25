@@ -18,6 +18,7 @@ class MainControl:
         self.fps = 60.0
         self.now = 0.0
         self.mouse_pos = pg.mouse.get_pos()
+        self.keyboard = pg.key.get_pressed()
         self.state_machine = StateMachine()
 
     def update(self):
@@ -25,7 +26,7 @@ class MainControl:
         Updates the currently active state.
         """
         self.now = pg.time.get_ticks()
-        self.state_machine.update(self.now, self.mouse_pos)
+        self.state_machine.update(self.now, self.mouse_pos, self.keyboard)
 
     def draw(self, interpolate):
         if not self.state_machine.state.done:
@@ -42,6 +43,7 @@ class MainControl:
                 self.done = True
         self.state_machine.accept_events(events)
         self.mouse_pos = pg.mouse.get_pos()
+        self.keyboard = pg.key.get_pressed()
 
     def main(self):
         """Main loop for entire program. Uses a constant timestep."""

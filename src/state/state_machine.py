@@ -36,7 +36,7 @@ class State:
         self.done = False
         return self.persist
 
-    def update(self, now, mouse_pos):
+    def update(self, now, mouse_pos, keyboard):
         """Update function for state."""
         pass
 
@@ -63,7 +63,7 @@ class StateMachine:
         self.state_dict = state_dict
         self.state = state_dict[start_state]
 
-    def update(self, now, mouse_pos):
+    def update(self, now, mouse_pos, keyboard):
         """
         Checks if a state is done or has called for a game quit.
         State is flipped if neccessary and State.update is called.
@@ -73,7 +73,7 @@ class StateMachine:
             self.done = True
         elif self.state.done:
             self.flip_state()
-        self.state.update(now, mouse_pos)
+        self.state.update(now, mouse_pos, keyboard)
 
     def draw(self, surface, interpolate):
         self.state.draw(surface, interpolate)

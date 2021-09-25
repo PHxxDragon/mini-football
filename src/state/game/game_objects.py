@@ -3,6 +3,7 @@ import pygame as pg
 from src.physics.body import Body
 from src.surface.base_surface import BaseSurface
 from src.surface.surfaces import BallSurface
+from src.surface.surfaces import FieldSurface
 
 
 class BaseSprite(pg.sprite.Sprite):
@@ -39,5 +40,16 @@ class Ball(BasePhysicsSprite):
     def __init__(self, game):
         super().__init__(game)
         self.surface = BallSurface()
-        self.body = Body(Body.KINEMATIC_BODY)
+        self.body = Body(Body.DYNAMIC_BODY)
+        self.game.world.add_body(self.body)
         self.body.set_position((300, 300))
+
+
+class Field(BaseSprite):
+    def __init__(self, game):
+        super().__init__(game)
+        self.surface = FieldSurface()
+
+    def get_rect(self):
+        return self.surface.get_surface().get_rect(topleft=(0, 0))
+
