@@ -4,6 +4,7 @@ from pygame.math import Vector2
 from src.state.state_machine import State
 from src.state.game.game_objects import Ball
 from src.state.game.game_objects import Field
+from src.state.game.game_objects import Line
 from src.physics.world import World
 
 
@@ -14,9 +15,11 @@ class Game(State):
         self.group_all = pg.sprite.Group()
         self.world = World()
         self.ball = Ball(self)
+        self.line = Line(self)
         self.field = Field(self)
         self.group_all.add(self.field)
         self.group_all.add(self.ball)
+        self.group_all.add(self.line)
 
     def startup(self, now, to_persist):
         self.world.apply_permanent_acceleration(Vector2(9.8, 0))

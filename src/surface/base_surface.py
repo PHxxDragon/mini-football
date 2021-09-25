@@ -6,13 +6,20 @@ class BaseImage:
     def get_frame(self, now):
         pass
 
+    def rotate(self, rotation):
+        raise NotImplementedError
+
 
 class NoAnimation(BaseImage):
     def __init__(self, frame):
+        self.original_frame = frame
         self.frame = frame
 
     def get_frame(self, now):
         return self.frame
+
+    def rotate(self, rotation):
+        self.frame = pg.transform.rotate(self.original_frame, rotation)
 
 
 class Animation(BaseImage):
@@ -30,6 +37,9 @@ class Animation(BaseImage):
         self.loop_count = 0
         self.done = False
         self.time = None
+
+    def rotate(self, rotation):
+        raise NotImplementedError
 
     def get_frame(self, now):
         if not self.time:
@@ -51,8 +61,12 @@ class BaseSurface:
     def __init__(self):
         self.states = [BaseSurface.DEFAULT_STATE]
         self.state = BaseSurface.DEFAULT_STATE
-        self.images: List[BaseImage] = None
+        self.images = None
         self.surface = None
+
+    def rotate(self, rotation):
+        for image in self.images.values():
+            image.rotate(rotation)
 
     def set_state(self, state):
         self.state = state

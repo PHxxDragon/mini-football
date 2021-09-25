@@ -25,7 +25,7 @@ class MainControl:
         """
         Updates the currently active state.
         """
-        self.now = pg.time.get_ticks()
+        self.now += DELTA_TIME
         self.state_machine.update(self.now, self.mouse_pos, self.keyboard)
 
     def draw(self, interpolate):

@@ -28,7 +28,7 @@ class LineSurface(BaseSurface):
     def __init__(self, width, length):
         super().__init__()
         rect = pg.Surface((length, width))
-        rect.fill((0, 0, 0))
+        rect.fill((0, 255, 0))
         self.images = {
             BaseSurface.DEFAULT_STATE: NoAnimation(rect)
         }
