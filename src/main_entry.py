@@ -1,6 +1,6 @@
-from main_control import MainControl
-from state.game.game import Game
-from state.title.title_screen import TitleScreen
+from src.main_control import MainControl
+from src.state.game_state import Game
+from src.state.title_state import TitleScreen
 import pygame as pg
 
 
