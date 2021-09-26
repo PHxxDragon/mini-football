@@ -27,8 +27,9 @@ class Game(State):
         self.group_all.add(*self.lines)
 
     def startup(self, now, to_persist):
-        self.world.apply_permanent_acceleration(Vector2(9.8, 1))
-
+        # self.world.apply_permanent_acceleration(Vector2(-49.8, -45))
+        pass
+    
     def accept_events(self, events):
         pass
 

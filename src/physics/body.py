@@ -25,7 +25,7 @@ class Body:
         self.temporary_forces = []
         self.previous_time = -1    # in milliseconds
         self.groups: Set = set()
-        self.reduce_coefficient = 0.7
+        self.reduce_coefficient = 0.9
         Body.MAX_ID += 1
         self.id = Body.MAX_ID
 
@@ -79,15 +79,17 @@ class Body:
     def check_collision(self, sum_force):
         for body in self.world.bodies[DEFAULT_GROUP].values():
             if body is not self:
-                collide, away = self.shape.collide_with(body.shape, self.velocity)
-                if collide and away:
+                collide, not_away = self.shape.collide_with(body.shape, self.velocity)
+                if collide and not_away:
                     reflection = \
                         self.shape.collide_reflect_velocity(body.shape, self.velocity)
-                    if reflection.magnitude() > 2:
-                        self.velocity += reflection * self.reduce_coefficient
-                    else:
-                        self.velocity += reflection / 2
-                    self.position -= 2 * self.shape.collide_reflect_position(body.shape) * self.reduce_coefficient
+                    self.velocity += reflection * self.reduce_coefficient
+                    self.position += self.shape.collide_reflect_position(body.shape)
 
-                    sum_force = self.shape.collide_remain_force(body.shape, sum_force)
+                elif collide:
+                    reflection = \
+                        self.shape.collide_reflect_velocity(body.shape, self.velocity)
+                    if reflection.magnitude() < 2:
+                        self.velocity += reflection / 2
+                        sum_force += self.shape.collide_reflect_force(body.shape, sum_force) / 2
         return sum_force

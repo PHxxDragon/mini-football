@@ -9,7 +9,7 @@ from src.common.config import BALL_RADIUS
 class BallSurface(BaseSurface):
     def __init__(self):
         super().__init__()
-        circle = pg.Surface((2*BALL_RADIUS, 2*BALL_RADIUS))
+        circle = pg.Surface((2*BALL_RADIUS, 2*BALL_RADIUS), pg.SRCALPHA)
         pg.draw.circle(circle, (0, 255, 0), (BALL_RADIUS, BALL_RADIUS), BALL_RADIUS)
         self.radius = BALL_RADIUS
         self.images = {

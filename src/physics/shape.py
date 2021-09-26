@@ -1,5 +1,6 @@
 import pygame as pg
 
+from src.common.config import TOLERANCE
 
 class BaseShape:
     def __init__(self, relative_pos: pg.math.Vector2 = pg.math.Vector2(0, 0)):
@@ -15,8 +16,8 @@ class BaseShape:
     def collide_reflect_position(self, shape):
         pass
 
-    def collide_remain_force(self, shape, force):
-        pass
+    def collide_reflect_force(self, shape, force):
+        return self.collide_reflect_velocity(shape, force)
 
     def collide_with(self, shape, velocity):
         pass
@@ -48,14 +49,7 @@ class CircleShape(BaseShape):
         if isinstance(shape, PlaneShape):
             dc = self.get_absolute_pos() * shape.normal
             d = shape.get_absolute_pos() * shape.normal
-            return (abs(d - dc) - self.radius) * shape.normal
-
-    def collide_remain_force(self, shape, force):
-        if isinstance(shape, CircleShape):
-            pass
-        if isinstance(shape, PlaneShape):
-            # TODO: remove only force perpendicular to the plane
-            return pg.math.Vector2(0, 0)
+            return (-1) * (abs(d - dc) - self.radius) * shape.normal
 
     def collide_with(self, shape, velocity):
         if isinstance(shape, CircleShape):
@@ -63,7 +57,7 @@ class CircleShape(BaseShape):
         elif isinstance(shape, PlaneShape):
             dc = self.get_absolute_pos() * shape.normal
             d = shape.get_absolute_pos() * shape.normal
-            if abs(d - dc) < self.radius:
+            if abs(d - dc) < self.radius + TOLERANCE:
                 if shape.normal * velocity > 0:
                     return True, False
                 else:
