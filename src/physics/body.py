@@ -83,20 +83,17 @@ class Body:
         self.previous_time = now
 
     def check_collision_for_kinematic_body(self, velocity):
+        new_velocity = velocity
         for body in self.world.bodies[DEFAULT_GROUP].values():
             if body is not self:
-                if body.body_type in [STATIC_BODY, KINEMATIC_BODY]:
-                    velocity_to_check = velocity - body.velocity
-                else:
-                    velocity_to_check = velocity
-                collide, not_away = self.shape.collide_with(body.shape, velocity_to_check)
+                collide, not_away = self.shape.collide_with(body.shape, velocity)
                 if collide and not_away:
                     reflection = \
-                        self.shape.collide_reflect_velocity(body.shape, velocity_to_check)
-                    velocity = velocity + reflection / 2
+                        self.shape.collide_reflect_velocity(body.shape, velocity)
+                    velocity += reflection / 2
                     self.position += self.shape.collide_reflect_position(body.shape)
 
-        return velocity
+        return new_velocity
 
     def check_collision_for_dynamic_body(self, sum_force):
         for body in self.world.bodies[DEFAULT_GROUP].values():
