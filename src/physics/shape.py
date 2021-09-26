@@ -25,9 +25,10 @@ class BaseShape:
 
 
 class PlaneShape(BaseShape):
-    def __init__(self, normal: pg.math.Vector2, relative_pos: pg.math.Vector2 = pg.math.Vector2(0, 0)):
+    def __init__(self, normal: pg.math.Vector2, relative_pos: pg.math.Vector2 = pg.math.Vector2(0, 0), length: pg.math.Vector2 = None):
         super().__init__(relative_pos)
         self.normal = normal
+        self.length = length
 
     def collide_width(self, shape, velocity):
         pass
@@ -80,9 +81,15 @@ class CircleShape(BaseShape):
             dc = self.get_absolute_pos() * shape.normal
             d = shape.get_absolute_pos() * shape.normal
             if abs(d - dc) < self.radius + TOLERANCE:
+                if shape.length is not None:
+                    v = self.get_absolute_pos() - shape.get_absolute_pos()
+                    perpendicular_vector = shape.normal.rotate(90)
+                    if abs(v * perpendicular_vector) > (shape.length / 2) + TOLERANCE:
+                        return False, False
                 if shape.normal * velocity > 0:
                     return True, False
                 else:
                     return True, True
+
             else:
                 return False, False

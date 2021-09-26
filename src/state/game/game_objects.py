@@ -6,6 +6,8 @@ from src.surface.surfaces import BallSurface
 from src.surface.surfaces import FieldSurface
 from src.surface.surfaces import LineSurface
 from src.surface.surfaces import PlayerSurface
+from src.surface.surfaces import GoalSurface
+from src.surface.surfaces import TextSurface
 from src.physics.world import STATIC_BODY
 from src.physics.world import KINEMATIC_BODY
 from src.physics.world import DYNAMIC_BODY
@@ -16,6 +18,8 @@ from src.common.config import SCREEN_WIDTH
 from src.common.config import SCREEN_HEIGHT
 from src.common.config import PLAYER_SPEED
 from src.common.config import SHOOT_RADIUS
+from src.common.config import SHOOT_IMPULSE
+from src.common.config import GOAL_HEIGHT
 
 
 class BaseSprite(pg.sprite.Sprite):
@@ -54,27 +58,44 @@ class BasePhysicsSprite(BaseSprite):
 class Line(BasePhysicsSprite):
     UP = (0, 1)
     DOWN = (0, -1)
-    LEFT = (-1, 0)
-    RIGHT = (1, 0)
+    LEFT = (1, 0)
+    RIGHT = (-1, 0)
 
-    def __init__(self, game, direction=LEFT):
+    def __init__(self, game, width, length, position, direction=LEFT):
         super().__init__(game)
-        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(direction)), STATIC_BODY)
+        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(direction), length=length), STATIC_BODY,
+                         reduce_coefficient=1)
         self.game.world.add_body(self.body)
-        if direction == Line.LEFT:
-            self.surface = LineSurface(LINE_WIDTH, SCREEN_HEIGHT - LINE_WIDTH)
-            self.body.set_position((SCREEN_WIDTH - LINE_WIDTH, SCREEN_HEIGHT/2))
+        self.surface = LineSurface(width, length)
+        self.body.set_position(position)
+        if direction in [Line.LEFT, Line.RIGHT]:
             self.set_rotation(90)
-        elif direction == Line.RIGHT:
-            self.surface = LineSurface(LINE_WIDTH, SCREEN_HEIGHT - LINE_WIDTH)
-            self.body.set_position((LINE_WIDTH, SCREEN_HEIGHT/2))
-            self.set_rotation(90)
-        elif direction == Line.UP:
-            self.surface = LineSurface(LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH)
-            self.body.set_position((SCREEN_WIDTH/2, LINE_WIDTH))
-        elif direction == Line.DOWN:
-            self.surface = LineSurface(LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH)
-            self.body.set_position((SCREEN_WIDTH/2, SCREEN_HEIGHT - LINE_WIDTH))
+
+
+class Border:
+    def __init__(self, game):
+        super().__init__()
+        self.game = game
+        self.up = Line(game, LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH, (SCREEN_WIDTH / 2, LINE_WIDTH),
+                       direction=Line.UP)
+        self.down = Line(game, LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH, (SCREEN_WIDTH / 2, SCREEN_HEIGHT - LINE_WIDTH),
+                         direction=Line.DOWN)
+
+        self.up_left = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
+                            (LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 + LINE_WIDTH), direction=Line.LEFT)
+        self.down_left = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
+                              (LINE_WIDTH, SCREEN_HEIGHT - (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 - LINE_WIDTH),
+                              direction=Line.LEFT)
+
+        self.up_right = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
+                             (SCREEN_WIDTH - LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 + LINE_WIDTH),
+                             direction=Line.RIGHT)
+        self.down_right = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
+                               (SCREEN_WIDTH - LINE_WIDTH,
+                                SCREEN_HEIGHT - (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 - LINE_WIDTH),
+                               direction=Line.RIGHT)
+
+        self.lines = (self.up, self.down, self.up_left, self.down_left, self.up_right, self.down_right)
 
 
 class Ball(BasePhysicsSprite):
@@ -83,7 +104,7 @@ class Ball(BasePhysicsSprite):
         self.surface = BallSurface()
         self.body = Body(CircleShape(self.surface.radius), DYNAMIC_BODY)
         self.game.world.add_body(self.body)
-        self.body.set_position((300, 300))
+        self.body.set_position((SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
 
 
 class Field(BaseSprite):
@@ -110,7 +131,15 @@ class Player(BasePhysicsSprite):
         self.body.set_velocity(velocity * self.body.mass * PLAYER_SPEED)
 
     def shoot(self):
-        pass
+        ball = self.game.ball
+        if (
+                ball.body.get_position() - self.body.get_position()).magnitude() < self.body.shape.radius + ball.body.shape.radius + SHOOT_RADIUS:
+            direction = ball.body.get_position() - self.body.get_position()
+            direction = direction / direction.magnitude()
+            ball.body.apply_impulse(SHOOT_IMPULSE * direction)
+
+    def set_state(self, state):
+        self.surface.set_state(state)
 
 
 class Team:
@@ -119,13 +148,60 @@ class Team:
         self.game = game
         self.players = [Player(game, team) for i in range(num_player)]
         self.current_player = 0
+        self.players[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
 
     def change_player(self):
         self.players[self.current_player].apply_velocity(pg.math.Vector2(0, 0))
+        self.players[self.current_player].set_state(BaseSurface.DEFAULT_STATE)
         self.current_player = self.current_player + 1
         self.current_player = self.current_player % len(self.players)
+        self.players[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
 
     def move_player(self, direction):
         self.players[self.current_player].apply_velocity(direction)
 
+    def shoot(self):
+        self.players[self.current_player].shoot()
+
+
+class Goal(BaseSprite):
+    def __init__(self, game, team):
+        super().__init__(game)
+        self.surface = GoalSurface()
+        self.team = team
+        if self.team == 1:
+            self.surface.rotate(180)
+
+    def get_rect(self):
+        if self.team == 0:
+            return self.surface.get_surface().get_rect(midleft=(0, SCREEN_HEIGHT / 2))
+        elif self.team == 1:
+            return self.surface.get_surface().get_rect(midright=(SCREEN_WIDTH, SCREEN_HEIGHT / 2))
+
+    def update(self, now):
+        super().update(now)
+        ball = self.game.ball
+        if pg.math.Vector2(ball.body.get_position()).x < 0 and self.team == 0:
+            self.game.game_score(1)
+        elif pg.math.Vector2(ball.body.get_position()).x > SCREEN_WIDTH and self.team == 1:
+            self.game.game_score(0)
+
+
+class Score(BaseSprite):
+    def __init__(self, game):
+        super().__init__(game)
+        self.team0 = 0
+        self.team1 = 0
+        self.surface = TextSurface()
+        self.surface.set_text("Score: " + str(self.team0) + " | " + str(self.team1))
+
+    def update_score(self, team0 = None, team1 = None):
+        if team0 is not None:
+            self.team0 = team0
+        if team1 is not None:
+            self.team1 = team1
+        self.surface.set_text("Score: " + str(self.team0) + " | " + str(self.team1))
+
+    def get_rect(self):
+        return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 10))
 
