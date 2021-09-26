@@ -6,12 +6,16 @@ from src.surface.surfaces import BallSurface
 from src.surface.surfaces import FieldSurface
 from src.surface.surfaces import LineSurface
 from src.surface.surfaces import PlayerSurface
+from src.physics.world import STATIC_BODY
+from src.physics.world import KINEMATIC_BODY
+from src.physics.world import DYNAMIC_BODY
 from src.physics.shape import CircleShape
 from src.physics.shape import PlaneShape
 from src.common.config import LINE_WIDTH
 from src.common.config import SCREEN_WIDTH
 from src.common.config import SCREEN_HEIGHT
 from src.common.config import PLAYER_SPEED
+from src.common.config import SHOOT_RADIUS
 
 
 class BaseSprite(pg.sprite.Sprite):
@@ -55,7 +59,7 @@ class Line(BasePhysicsSprite):
 
     def __init__(self, game, direction=LEFT):
         super().__init__(game)
-        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(direction)), Body.STATIC_BODY)
+        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(direction)), STATIC_BODY)
         self.game.world.add_body(self.body)
         if direction == Line.LEFT:
             self.surface = LineSurface(LINE_WIDTH, SCREEN_HEIGHT - LINE_WIDTH)
@@ -77,7 +81,7 @@ class Ball(BasePhysicsSprite):
     def __init__(self, game):
         super().__init__(game)
         self.surface = BallSurface()
-        self.body = Body(CircleShape(self.surface.radius), Body.DYNAMIC_BODY)
+        self.body = Body(CircleShape(self.surface.radius), DYNAMIC_BODY)
         self.game.world.add_body(self.body)
         self.body.set_position((300, 300))
 
@@ -95,7 +99,7 @@ class Player(BasePhysicsSprite):
     def __init__(self, game, team):
         super().__init__(game)
         self.surface = PlayerSurface(team)
-        self.body = Body(CircleShape(self.surface.radius), Body.KINEMATIC_BODY, reduce_coefficient=0.4)
+        self.body = Body(CircleShape(self.surface.radius), KINEMATIC_BODY, reduce_coefficient=0.8)
         self.game.world.add_body(self.body)
         self.body.set_position((100, 100))
 
@@ -104,6 +108,9 @@ class Player(BasePhysicsSprite):
 
     def apply_velocity(self, velocity):
         self.body.set_velocity(velocity * self.body.mass * PLAYER_SPEED)
+
+    def shoot(self):
+        pass
 
 
 class Team:

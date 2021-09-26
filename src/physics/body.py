@@ -2,14 +2,14 @@ from typing import Set
 
 import pygame as pg
 from src.physics.world import DEFAULT_GROUP
+from src.physics.world import DYNAMIC_BODY
+from src.physics.world import KINEMATIC_BODY
+from src.physics.world import STATIC_BODY
 from src.common.config import METER_TO_PIXEL
 from src.physics.shape import BaseShape
 
 
 class Body:
-    DYNAMIC_BODY = 0
-    STATIC_BODY = 1
-    KINEMATIC_BODY = 2
     MAX_ID = 0
 
     def __init__(self, shape, body_type=DYNAMIC_BODY, mass=1.0, reduce_coefficient=0.9):
@@ -56,7 +56,7 @@ class Body:
             return
 
         delta_time = (now - self.previous_time) / 1000.0
-        if self.body_type == Body.DYNAMIC_BODY:
+        if self.body_type == DYNAMIC_BODY:
             delta_time_divide_mass = delta_time / self.mass
 
             self.position += self.velocity * delta_time * METER_TO_PIXEL
@@ -66,7 +66,7 @@ class Body:
             for force, duration in self.temporary_forces:
                 sum_force += force
 
-            sum_force = self.check_collision(sum_force)
+            sum_force = self.check_collision_for_dynamic_body(sum_force)
 
             self.velocity += sum_force * delta_time_divide_mass
 
@@ -77,26 +77,42 @@ class Body:
             self.temporary_forces = new_temporary_forces
             self.instant_force = pg.math.Vector2(0, 0)
 
-        elif self.body_type == Body.KINEMATIC_BODY:
+        elif self.body_type == KINEMATIC_BODY:
+            self.velocity = self.check_collision_for_kinematic_body(self.velocity)
             self.position += self.velocity * delta_time * METER_TO_PIXEL
-
         self.previous_time = now
 
-    def check_collision(self, sum_force):
+    def check_collision_for_kinematic_body(self, velocity):
         for body in self.world.bodies[DEFAULT_GROUP].values():
-            if body is not self and body.body_type is not Body.DYNAMIC_BODY:
-                collide, not_away = self.shape.collide_with(body.shape, self.velocity)
+            if body is not self:
+                if body.body_type in [STATIC_BODY, KINEMATIC_BODY]:
+                    velocity_to_check = velocity - body.velocity
+                else:
+                    velocity_to_check = velocity
+                collide, not_away = self.shape.collide_with(body.shape, velocity_to_check)
                 if collide and not_away:
                     reflection = \
-                        self.shape.collide_reflect_velocity(body.shape, self.velocity - body.velocity)
-                    self.velocity += reflection * self.reduce_coefficient * body.reduce_coefficient
+                        self.shape.collide_reflect_velocity(body.shape, velocity_to_check)
+                    velocity = velocity + reflection / 2
                     self.position += self.shape.collide_reflect_position(body.shape)
 
-                elif collide:
-                    self.position += self.shape.collide_reflect_position(body.shape)
-                    reflection = \
-                        self.shape.collide_reflect_velocity(body.shape, self.velocity - body.velocity)
-                    if reflection.magnitude() < 2:
-                        self.velocity += reflection / 2
-                        sum_force += self.shape.collide_reflect_force(body.shape, sum_force) / 2
+        return velocity
+
+    def check_collision_for_dynamic_body(self, sum_force):
+        for body in self.world.bodies[DEFAULT_GROUP].values():
+            if body is not self:
+                if body.body_type in [STATIC_BODY, KINEMATIC_BODY]:
+                    collide, not_away = self.shape.collide_with(body.shape, self.velocity)
+                    if collide:
+                        reflection = \
+                            self.shape.collide_reflect_velocity(body.shape, self.velocity - body.velocity)
+                        self.position += self.shape.collide_reflect_position(body.shape)
+                        if not_away:
+                            self.velocity += reflection * self.reduce_coefficient * body.reduce_coefficient
+                        else:
+                            if reflection.magnitude() < 2:
+                                self.velocity += reflection / 2
+                                sum_force += self.shape.collide_reflect_force(body.shape, sum_force) / 2
+                            else:
+                                self.velocity += reflection * self.reduce_coefficient * body.reduce_coefficient
         return sum_force

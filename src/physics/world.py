@@ -1,6 +1,9 @@
 import pygame as pg
 
 DEFAULT_GROUP = "all"
+DYNAMIC_BODY = 0
+STATIC_BODY = 1
+KINEMATIC_BODY = 2
 
 
 class World:
@@ -61,4 +64,8 @@ class World:
 
     def update(self, now):
         for body in self.bodies[DEFAULT_GROUP].values():
-            body.update(now)
+            if body.body_type == KINEMATIC_BODY:
+                body.update(now)
+        for body in self.bodies[DEFAULT_GROUP].values():
+            if body.body_type == DYNAMIC_BODY:
+                body.update(now)

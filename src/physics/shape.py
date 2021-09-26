@@ -41,6 +41,8 @@ class CircleShape(BaseShape):
     def collide_reflect_velocity(self, shape, velocity):
         if isinstance(shape, CircleShape):
             v = self.get_absolute_pos() - shape.get_absolute_pos()
+            if v.magnitude() == 0:
+                return pg.math.Vector2(0,0)
             normal = v / v.magnitude()
             return normal * (velocity * normal) * (-2)
         if isinstance(shape, PlaneShape):
@@ -49,6 +51,8 @@ class CircleShape(BaseShape):
     def collide_reflect_position(self, shape):
         if isinstance(shape, CircleShape):
             v = self.get_absolute_pos() - shape.get_absolute_pos()
+            if v.magnitude() == 0:
+                return pg.math.Vector2(0,0)
             normal = v / v.magnitude()
             if v.magnitude() - self.radius - shape.radius < 0:
                 return (-1) * (v.magnitude() - self.radius - shape.radius) * normal

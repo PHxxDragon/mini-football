@@ -53,9 +53,9 @@ class Game(State):
                     self.team0.change_player()
 
     def update(self, now, mouse_pos, keyboard):
-        self.team0.move_player(get_move_direction(keyboard))
-        self.world.update(now)
         self.group_all.update(now)
+        self.world.update(now)
+        self.team0.move_player(get_move_direction(keyboard))
 
     def draw(self, surface: pg.Surface, interpolate):
         self.group_all.draw(surface)
