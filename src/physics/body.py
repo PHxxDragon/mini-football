@@ -23,8 +23,9 @@ class Body:
         self.mass = mass
         self.world = None
         self.temporary_forces = []
-        self.previous_time = 0.0    # in milliseconds
+        self.previous_time = -1    # in milliseconds
         self.groups: Set = set()
+        self.reduce_coefficient = 0.7
         Body.MAX_ID += 1
         self.id = Body.MAX_ID
 
@@ -47,42 +48,46 @@ class Body:
         return self.position
 
     def update(self, now):
+        if self.previous_time == -1:
+            self.previous_time = now
+            return
+
+        delta_time = (now - self.previous_time) / 1000.0
         if self.body_type == Body.DYNAMIC_BODY:
-            delta_time = (now - self.previous_time) / 1000.0
             delta_time_divide_mass = delta_time / self.mass
 
             self.position += self.velocity * delta_time * METER_TO_PIXEL
 
-            collided = self.check_collision()
+            sum_force = pg.math.Vector2(0, 0)
+            sum_force += self.instant_force + self.permanent_acceleration * self.mass
+            for force, duration in self.temporary_forces:
+                sum_force += force
 
-            if not collided:
-                self.velocity += self.instant_force * delta_time_divide_mass + self.permanent_acceleration * delta_time
+            sum_force = self.check_collision(sum_force)
+
+            self.velocity += sum_force * delta_time_divide_mass
 
             new_temporary_forces = []
-            sum_force = pg.math.Vector2(0, 0)
             for force, duration in self.temporary_forces:
-                if duration < delta_time:
-                    if not collided:
-                        self.velocity += force * duration / self.mass
-                else:
+                if duration > delta_time:
                     new_temporary_forces.append((force, duration - delta_time))
-                    sum_force += force
-            if not collided:
-                self.velocity += sum_force * delta_time_divide_mass
-
+            self.temporary_forces = new_temporary_forces
             self.instant_force = pg.math.Vector2(0, 0)
-            self.previous_time = now
 
-    def check_collision(self):
-        collided = False
+        self.previous_time = now
+
+    def check_collision(self, sum_force):
         for body in self.world.bodies[DEFAULT_GROUP].values():
             if body is not self:
                 collide, away = self.shape.collide_with(body.shape, self.velocity)
                 if collide and away:
-                    collided = True
-                    reflection = self.shape.collide_reflect_velocity(body.shape, self.velocity) * 0.9
+                    reflection = \
+                        self.shape.collide_reflect_velocity(body.shape, self.velocity)
                     if reflection.magnitude() > 2:
-                        self.velocity += reflection
+                        self.velocity += reflection * self.reduce_coefficient
                     else:
                         self.velocity += reflection / 2
-        return collided
+                    self.position -= 2 * self.shape.collide_reflect_position(body.shape) * self.reduce_coefficient
+
+                    sum_force = self.shape.collide_remain_force(body.shape, sum_force)
+        return sum_force

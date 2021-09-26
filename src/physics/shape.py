@@ -12,6 +12,12 @@ class BaseShape:
     def collide_reflect_velocity(self, shape, velocity):
         pass
 
+    def collide_reflect_position(self, shape):
+        pass
+
+    def collide_remain_force(self, shape, force):
+        pass
+
     def collide_with(self, shape, velocity):
         pass
 
@@ -36,12 +42,27 @@ class CircleShape(BaseShape):
         if isinstance(shape, PlaneShape):
             return shape.normal * (velocity * shape.normal) * (-2)
 
+    def collide_reflect_position(self, shape):
+        if isinstance(shape, CircleShape):
+            pass
+        if isinstance(shape, PlaneShape):
+            dc = self.get_absolute_pos() * shape.normal
+            d = shape.get_absolute_pos() * shape.normal
+            return (abs(d - dc) - self.radius) * shape.normal
+
+    def collide_remain_force(self, shape, force):
+        if isinstance(shape, CircleShape):
+            pass
+        if isinstance(shape, PlaneShape):
+            # TODO: remove only force perpendicular to the plane
+            return pg.math.Vector2(0, 0)
+
     def collide_with(self, shape, velocity):
         if isinstance(shape, CircleShape):
             pass
         elif isinstance(shape, PlaneShape):
-            dc = (-1) * self.get_absolute_pos() * shape.normal
-            d = (-1) * shape.get_absolute_pos() * shape.normal
+            dc = self.get_absolute_pos() * shape.normal
+            d = shape.get_absolute_pos() * shape.normal
             if abs(d - dc) < self.radius:
                 if shape.normal * velocity > 0:
                     return True, False
@@ -49,4 +70,3 @@ class CircleShape(BaseShape):
                     return True, True
             else:
                 return False, False
-

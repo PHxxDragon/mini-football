@@ -7,6 +7,9 @@ from src.surface.surfaces import FieldSurface
 from src.surface.surfaces import LineSurface
 from src.physics.shape import CircleShape
 from src.physics.shape import PlaneShape
+from src.common.config import LINE_WIDTH
+from src.common.config import SCREEN_WIDTH
+from src.common.config import SCREEN_HEIGHT
 
 
 class BaseSprite(pg.sprite.Sprite):
@@ -43,25 +46,36 @@ class BasePhysicsSprite(BaseSprite):
 
 
 class Line(BasePhysicsSprite):
-    UP = (0, -1)
-    DOWN = (0, 1)
+    UP = (0, 1)
+    DOWN = (0, -1)
     LEFT = (-1, 0)
-    RIGHT = (0, 1)
+    RIGHT = (1, 0)
 
     def __init__(self, game, direction=LEFT):
         super().__init__(game)
-        self.surface = LineSurface(2, 600)
-        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(-1, 0)), Body.STATIC_BODY)
+        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(direction)), Body.STATIC_BODY)
         self.game.world.add_body(self.body)
-        self.body.set_position((900, 300))
-        self.set_rotation(90)
+        if direction == Line.LEFT:
+            self.surface = LineSurface(LINE_WIDTH, SCREEN_HEIGHT - LINE_WIDTH)
+            self.body.set_position((SCREEN_WIDTH - LINE_WIDTH, SCREEN_HEIGHT/2))
+            self.set_rotation(90)
+        elif direction == Line.RIGHT:
+            self.surface = LineSurface(LINE_WIDTH, SCREEN_HEIGHT - LINE_WIDTH)
+            self.body.set_position((LINE_WIDTH, SCREEN_HEIGHT/2))
+            self.set_rotation(90)
+        elif direction == Line.UP:
+            self.surface = LineSurface(LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH)
+            self.body.set_position((SCREEN_WIDTH/2, LINE_WIDTH))
+        elif direction == Line.DOWN:
+            self.surface = LineSurface(LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH)
+            self.body.set_position((SCREEN_WIDTH/2, SCREEN_HEIGHT - LINE_WIDTH))
 
 
 class Ball(BasePhysicsSprite):
     def __init__(self, game):
         super().__init__(game)
         self.surface = BallSurface()
-        self.body = Body(CircleShape(31), Body.DYNAMIC_BODY)
+        self.body = Body(CircleShape(self.surface.radius), Body.DYNAMIC_BODY)
         self.game.world.add_body(self.body)
         self.body.set_position((300, 300))
 

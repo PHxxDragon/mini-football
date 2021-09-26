@@ -15,14 +15,19 @@ class Game(State):
         self.group_all = pg.sprite.Group()
         self.world = World()
         self.ball = Ball(self)
-        self.line = Line(self)
+        self.lines = [
+            Line(self, direction=Line.LEFT),
+            Line(self, direction=Line.RIGHT),
+            Line(self, direction=Line.UP),
+            Line(self, direction=Line.DOWN),
+            ]
         self.field = Field(self)
         self.group_all.add(self.field)
         self.group_all.add(self.ball)
-        self.group_all.add(self.line)
+        self.group_all.add(*self.lines)
 
     def startup(self, now, to_persist):
-        self.world.apply_permanent_acceleration(Vector2(9.8, 0))
+        self.world.apply_permanent_acceleration(Vector2(9.8, 1))
 
     def accept_events(self, events):
         pass
