@@ -5,11 +5,13 @@ from src.surface.base_surface import BaseSurface
 from src.surface.surfaces import BallSurface
 from src.surface.surfaces import FieldSurface
 from src.surface.surfaces import LineSurface
+from src.surface.surfaces import PlayerSurface
 from src.physics.shape import CircleShape
 from src.physics.shape import PlaneShape
 from src.common.config import LINE_WIDTH
 from src.common.config import SCREEN_WIDTH
 from src.common.config import SCREEN_HEIGHT
+from src.common.config import PLAYER_SPEED
 
 
 class BaseSprite(pg.sprite.Sprite):
@@ -87,4 +89,36 @@ class Field(BaseSprite):
 
     def get_rect(self):
         return self.surface.get_surface().get_rect(topleft=(0, 0))
+
+
+class Player(BasePhysicsSprite):
+    def __init__(self, game, team):
+        super().__init__(game)
+        self.surface = PlayerSurface(team)
+        self.body = Body(CircleShape(self.surface.radius), Body.KINEMATIC_BODY, reduce_coefficient=0.4)
+        self.game.world.add_body(self.body)
+        self.body.set_position((100, 100))
+
+    def set_position(self, position):
+        self.body.set_position(position)
+
+    def apply_velocity(self, velocity):
+        self.body.set_velocity(velocity * self.body.mass * PLAYER_SPEED)
+
+
+class Team:
+    def __init__(self, game, team, num_player):
+        super().__init__()
+        self.game = game
+        self.players = [Player(game, team) for i in range(num_player)]
+        self.current_player = 0
+
+    def change_player(self):
+        self.players[self.current_player].apply_velocity(pg.math.Vector2(0, 0))
+        self.current_player = self.current_player + 1
+        self.current_player = self.current_player % len(self.players)
+
+    def move_player(self, direction):
+        self.players[self.current_player].apply_velocity(direction)
+
 

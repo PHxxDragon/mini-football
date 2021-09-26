@@ -4,6 +4,7 @@ from src.surface.base_surface import BaseSurface
 from src.surface.base_surface import NoAnimation
 
 from src.common.config import BALL_RADIUS
+from src.common.config import PLAYER_RADIUS
 
 
 class BallSurface(BaseSurface):
@@ -40,11 +41,12 @@ class LineSurface(BaseSurface):
 class PlayerSurface(BaseSurface):
     def __init__(self, team):
         super().__init__()
-        circle = pg.Surface((64, 64))
+        circle = pg.Surface((2 * PLAYER_RADIUS,2 * PLAYER_RADIUS), pg.SRCALPHA)
         if team == 0:
-            pg.draw.circle(circle, (255, 0, 0), (31, 31), 31)
+            pg.draw.circle(circle, (255, 0, 0), (PLAYER_RADIUS, PLAYER_RADIUS), PLAYER_RADIUS)
         else:
-            pg.draw.circle(circle, (0, 0, 255), (31, 31), 31)
+            pg.draw.circle(circle, (0, 0, 255), (PLAYER_RADIUS, PLAYER_RADIUS), PLAYER_RADIUS)
         self.images = {
             BaseSurface.DEFAULT_STATE: NoAnimation(circle)
         }
+        self.radius = PLAYER_RADIUS

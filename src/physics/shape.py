@@ -2,6 +2,7 @@ import pygame as pg
 
 from src.common.config import TOLERANCE
 
+
 class BaseShape:
     def __init__(self, relative_pos: pg.math.Vector2 = pg.math.Vector2(0, 0)):
         self.relative_pos = relative_pos
@@ -39,21 +40,38 @@ class CircleShape(BaseShape):
 
     def collide_reflect_velocity(self, shape, velocity):
         if isinstance(shape, CircleShape):
-            pass
+            v = self.get_absolute_pos() - shape.get_absolute_pos()
+            normal = v / v.magnitude()
+            return normal * (velocity * normal) * (-2)
         if isinstance(shape, PlaneShape):
             return shape.normal * (velocity * shape.normal) * (-2)
 
     def collide_reflect_position(self, shape):
         if isinstance(shape, CircleShape):
-            pass
+            v = self.get_absolute_pos() - shape.get_absolute_pos()
+            normal = v / v.magnitude()
+            if v.magnitude() - self.radius - shape.radius < 0:
+                return (-1) * (v.magnitude() - self.radius - shape.radius) * normal
+            else:
+                return pg.math.Vector2(0, 0)
         if isinstance(shape, PlaneShape):
             dc = self.get_absolute_pos() * shape.normal
             d = shape.get_absolute_pos() * shape.normal
-            return (-1) * (abs(d - dc) - self.radius) * shape.normal
+            if abs(d - dc) - self.radius < 0:
+                return (-1) * (abs(d - dc) - self.radius) * shape.normal
+            else:
+                return pg.math.Vector2(0, 0)
 
     def collide_with(self, shape, velocity):
         if isinstance(shape, CircleShape):
-            pass
+            v = self.get_absolute_pos() - shape.get_absolute_pos()
+            if v * v < (self.radius + shape.radius) ** 2 + TOLERANCE:
+                if v * velocity > 0:
+                    return True, False
+                else:
+                    return True, True
+            else:
+                return False, False
         elif isinstance(shape, PlaneShape):
             dc = self.get_absolute_pos() * shape.normal
             d = shape.get_absolute_pos() * shape.normal
