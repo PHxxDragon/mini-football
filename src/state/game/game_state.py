@@ -13,7 +13,7 @@ from src.physics.world import World
 from src.common.config import WIN_SCORE
 
 
-def get_move_direction_0(keyboard):
+def get_move_direction_1(keyboard):
     direction = Vector2(0, 0)
     if keyboard[pygame.K_LEFT]:
         direction += Vector2(-1, 0)
@@ -26,7 +26,7 @@ def get_move_direction_0(keyboard):
     return direction
 
 
-def get_move_direction_1(keyboard):
+def get_move_direction_0(keyboard):
     direction = Vector2(0, 0)
     if keyboard[pygame.K_a]:
         direction += Vector2(-1, 0)
@@ -59,8 +59,8 @@ class Game(State):
         self.group_all = pg.sprite.Group()
         self.world = World()
         self.ball = Ball(self)
-        self.team0 = Team(self, 0, 3)
-        self.team1 = Team(self, 1, 3)
+        self.team0 = Team(self, 0)
+        self.team1 = Team(self, 1)
         self.border = Border(self)
         self.goal0 = Goal(self, 0)
         self.goal1 = Goal(self, 1)
@@ -99,13 +99,13 @@ class Game(State):
     def accept_events(self, events):
         for event in events:
             if event.type == pg.KEYDOWN:
-                if event.key == pygame.K_RETURN:
+                if event.key == pygame.K_c:
                     self.team0.change_player()
-                elif event.key == pygame.KMOD_RSHIFT:
-                    self.team0.shoot()
                 elif event.key == pygame.K_SPACE:
+                    self.team0.shoot()
+                elif event.key == pygame.K_RETURN:
                     self.team1.shoot()
-                elif event.key == pygame.K_x:
+                elif event.key == pygame.K_RSHIFT:
                     self.team1.change_player()
 
     def update(self, now, mouse_pos, keyboard):

@@ -20,6 +20,7 @@ from src.common.config import PLAYER_SPEED
 from src.common.config import SHOOT_RADIUS
 from src.common.config import SHOOT_IMPULSE
 from src.common.config import GOAL_HEIGHT
+from src.common.config import TEAM_CONFIG
 
 
 class BaseSprite(pg.sprite.Sprite):
@@ -127,6 +128,9 @@ class Player(BasePhysicsSprite):
     def set_position(self, position):
         self.body.set_position(position)
 
+    def get_position(self):
+        return self.body.get_position()
+
     def apply_velocity(self, velocity):
         self.body.set_velocity(velocity * self.body.mass * PLAYER_SPEED)
 
@@ -142,26 +146,63 @@ class Player(BasePhysicsSprite):
         self.surface.set_state(state)
 
 
-class Team:
-    def __init__(self, game, team, num_player):
-        super().__init__()
+class PlayerGroup:
+    def __init__(self, game, team, num_player, spacing, x_range, y_range):
+        x_range = pg.math.Vector2(x_range)
+        y_range = pg.math.Vector2(y_range)
         self.game = game
         self.players = [Player(game, team) for i in range(num_player)]
-        self.current_player = 0
-        self.players[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
+        self.x_range = x_range
+        self.y_range = y_range
+        x_pos = (x_range.x + x_range.y)/2
+        y_pos = (y_range.x + y_range.y)/2
+        mid = (num_player - 1) / 2.0
+        for i in range(num_player):
+            new_y_pos = y_pos + (i - mid) * spacing
+            self.players[i].set_position((x_pos, new_y_pos))
 
-    def change_player(self):
-        self.players[self.current_player].apply_velocity(pg.math.Vector2(0, 0))
-        self.players[self.current_player].set_state(BaseSurface.DEFAULT_STATE)
-        self.current_player = self.current_player + 1
-        self.current_player = self.current_player % len(self.players)
-        self.players[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
-
-    def move_player(self, direction):
-        self.players[self.current_player].apply_velocity(direction)
+    def apply_velocity(self, direction):
+        if direction.x != 0:
+            if self.players[0].get_position().x - self.players[0].surface.radius < self.x_range.x and direction.x < 0\
+                    or self.players[0].get_position().x + self.players[0].surface.radius > self.x_range.y and direction.x > 0:
+                direction.x = 0
+        if direction.y != 0:
+            if self.players[0].get_position().y - self.players[0].surface.radius < self.y_range.x and direction.y < 0 \
+                    or self.players[-1].get_position().y + self.players[-1].surface.radius > self.y_range.y and direction.y > 0:
+                direction.y = 0
+        for player in self.players:
+            player.apply_velocity(direction)
 
     def shoot(self):
-        self.players[self.current_player].shoot()
+        for player in self.players:
+            player.shoot()
+
+    def set_state(self, state):
+        for player in self.players:
+            player.set_state(state)
+
+
+class Team:
+    def __init__(self, game, team):
+        super().__init__()
+        self.game = game
+        self.player_groups = [PlayerGroup(game, team, *config) for config in TEAM_CONFIG[team]]
+        self.current_player = 0
+        self.player_groups[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
+        self.players = [player for player_group in self.player_groups for player in player_group.players]
+
+    def change_player(self):
+        self.player_groups[self.current_player].apply_velocity(pg.math.Vector2(0, 0))
+        self.player_groups[self.current_player].set_state(BaseSurface.DEFAULT_STATE)
+        self.current_player = self.current_player + 1
+        self.current_player = self.current_player % len(self.player_groups)
+        self.player_groups[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
+
+    def move_player(self, direction):
+        self.player_groups[self.current_player].apply_velocity(direction)
+
+    def shoot(self):
+        self.player_groups[self.current_player].shoot()
 
 
 class Goal(BaseSprite):

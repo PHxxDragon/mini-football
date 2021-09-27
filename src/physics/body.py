@@ -42,10 +42,10 @@ class Body:
         self.velocity += impulse / self.mass
 
     def set_velocity(self, velocity):
-        self.velocity = velocity
+        self.velocity = pg.math.Vector2(velocity)
 
     def set_position(self, position):
-        self.position = position
+        self.position = pg.math.Vector2(position)
 
     def get_position(self):
         return self.position
@@ -78,7 +78,7 @@ class Body:
             self.instant_force = pg.math.Vector2(0, 0)
 
         elif self.body_type == KINEMATIC_BODY:
-            self.velocity = self.check_collision_for_kinematic_body(self.velocity)
+            # self.velocity = self.check_collision_for_kinematic_body(self.velocity)
             self.position += self.velocity * delta_time * METER_TO_PIXEL
         self.previous_time = now
 
