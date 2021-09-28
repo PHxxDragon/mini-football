@@ -1,3 +1,5 @@
+import random
+
 import pygame as pg
 
 from src.physics.body import Body
@@ -245,4 +247,41 @@ class Score(BaseSprite):
 
     def get_rect(self):
         return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 0))
+
+
+class Wind(BaseSprite):
+    def __init__(self, game):
+        super().__init__(game)
+        self.last_wind = pg.math.Vector2(0, 0)
+        self.surface = TextSurface()
+        self.surface.set_text("W: N")
+        self.last_time = 0
+
+    def update(self, now):
+        super().update(now)
+        if now - self.last_time > 5000:
+            self.game.world.apply_permanent_acceleration((-1) * self.last_wind)
+            random_direction = random.choice([0, 1, 2, 3, 4, 5, 6, 7])
+            if random_direction == 0:
+                self.last_wind = pg.math.Vector2(2, 0)
+                self.surface.set_text("W: R")
+            elif random_direction == 1:
+                self.last_wind = pg.math.Vector2(0, 2)
+                self.surface.set_text("W: D")
+            elif random_direction == 2:
+                self.last_wind = pg.math.Vector2(-2, 0)
+                self.surface.set_text("W: L")
+            elif random_direction == 3:
+                self.last_wind = pg.math.Vector2(0, -2)
+                self.surface.set_text("W: U")
+            else:
+                self.last_wind = pg.math.Vector2(0, 0)
+                self.surface.set_text("W: N")
+            self.game.world.apply_permanent_acceleration(self.last_wind)
+            self.last_time = now
+
+    def get_rect(self):
+        return self.surface.get_surface().get_rect(topleft=(10, 0))
+
+
 

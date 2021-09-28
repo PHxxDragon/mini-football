@@ -9,6 +9,7 @@ from src.state.game.game_objects import Team
 from src.state.game.game_objects import Score
 from src.state.game.game_objects import Goal
 from src.state.game.game_objects import Border
+from src.state.game.game_objects import Wind
 from src.physics.world import World
 from src.common.config import WIN_SCORE
 
@@ -48,6 +49,7 @@ class Game(State):
         self.ball = None
         self.team0 = None
         self.team1 = None
+        self.wind = None
         self.border = None
         self.goal1 = None
         self.goal0 = None
@@ -65,6 +67,7 @@ class Game(State):
         self.goal0 = Goal(self, 0)
         self.goal1 = Goal(self, 1)
         self.score = Score(self)
+        self.wind = Wind(self)
         self.field = Field(self)
         self.group_all.add(self.field)
         self.group_all.add(self.goal0)
@@ -73,6 +76,7 @@ class Game(State):
         self.group_all.add(self.border.lines)
         self.group_all.add(self.team0.players)
         self.group_all.add(self.team1.players)
+        self.group_all.add(self.wind)
         self.group_all.add(self.score)
 
     def game_score(self, team):
