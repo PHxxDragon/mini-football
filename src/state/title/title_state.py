@@ -4,6 +4,8 @@ from src.state.state_machine import State
 from src.state.title.title_objects import Field
 from src.state.title.title_objects import Score
 from src.state.title.title_objects import PressKeyText
+from src.state.title.title_objects import ControlGuideLeft
+from src.state.title.title_objects import ControlGuideRight
 
 
 class TitleScreen(State):
@@ -14,10 +16,14 @@ class TitleScreen(State):
         self.field = Field(self)
         self.score = Score(self)
         self.press_key = PressKeyText(self)
+        self.control_left = ControlGuideLeft(self)
+        self.control_right = ControlGuideRight(self)
         self.group_all = pg.sprite.Group()
         self.group_all.add(self.field)
         self.group_all.add(self.score)
         self.group_all.add(self.press_key)
+        self.group_all.add(self.control_left)
+        self.group_all.add(self.control_right)
 
     def startup(self, now, to_persist):
         super().startup(now, to_persist)

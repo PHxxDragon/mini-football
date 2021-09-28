@@ -135,9 +135,9 @@ class GoalSurface(BaseSurface):
 
 
 class TextSurface(BaseSurface):
-    def __init__(self):
+    def __init__(self, size=60):
         super().__init__()
-        self.font = pg.font.Font(None, 60)
+        self.font = pg.font.Font(None, size)
         self.surface = None
 
     def set_text(self, text:str):

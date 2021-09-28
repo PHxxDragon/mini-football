@@ -50,6 +50,26 @@ class PressKeyText(BaseSprite):
         return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
 
 
+class ControlGuideLeft(BaseSprite):
+    def __init__(self, game):
+        super().__init__(game)
+        self.surface = TextSurface(30)
+        self.surface.set_text("Left controls: Move(W, A, S, D), Switch(Q, E), Shoot(SPACE)")
+
+    def get_rect(self):
+        return self.surface.get_surface().get_rect(topleft=(100, 100))
+
+
+class ControlGuideRight(BaseSprite):
+    def __init__(self, game):
+        super().__init__(game)
+        self.surface = TextSurface(30)
+        self.surface.set_text("Right controls: Move(U, D, L, R), Switch(/, R_SHIFT), Shoot(ENTER)")
+
+    def get_rect(self):
+        return self.surface.get_surface().get_rect(bottomleft=(100, 160))
+
+
 class Score(BaseSprite):
     def __init__(self, game):
         super().__init__(game)
