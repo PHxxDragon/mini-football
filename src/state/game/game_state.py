@@ -99,14 +99,18 @@ class Game(State):
     def accept_events(self, events):
         for event in events:
             if event.type == pg.KEYDOWN:
-                if event.key == pygame.K_c:
-                    self.team0.change_player()
+                if event.key == pygame.K_q:
+                    self.team0.change_player(-1)
+                elif event.key == pygame.K_e:
+                    self.team0.change_player(1)
                 elif event.key == pygame.K_SPACE:
                     self.team0.shoot()
                 elif event.key == pygame.K_RETURN:
                     self.team1.shoot()
                 elif event.key == pygame.K_RSHIFT:
-                    self.team1.change_player()
+                    self.team1.change_player(-1)
+                elif event.key == pygame.K_SLASH:
+                    self.team1.change_player(1)
 
     def update(self, now, mouse_pos, keyboard):
         self.team1.move_player(get_move_direction_1(keyboard))

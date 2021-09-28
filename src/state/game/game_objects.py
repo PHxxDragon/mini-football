@@ -64,7 +64,7 @@ class Line(BasePhysicsSprite):
 
     def __init__(self, game, width, length, position, direction=LEFT):
         super().__init__(game)
-        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(direction), length=length), STATIC_BODY,
+        self.body = Body(PlaneShape(pg.math.Vector2(direction), pg.math.Vector2(direction) * (LINE_WIDTH / 2), length=length), STATIC_BODY,
                          reduce_coefficient=1)
         self.game.world.add_body(self.body)
         self.surface = LineSurface(width, length)
@@ -77,23 +77,23 @@ class Border:
     def __init__(self, game):
         super().__init__()
         self.game = game
-        self.up = Line(game, LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH, (SCREEN_WIDTH / 2, LINE_WIDTH),
+        self.up = Line(game, LINE_WIDTH, SCREEN_WIDTH, (SCREEN_WIDTH / 2, LINE_WIDTH / 2),
                        direction=Line.UP)
-        self.down = Line(game, LINE_WIDTH, SCREEN_WIDTH - LINE_WIDTH, (SCREEN_WIDTH / 2, SCREEN_HEIGHT - LINE_WIDTH),
+        self.down = Line(game, LINE_WIDTH, SCREEN_WIDTH, (SCREEN_WIDTH / 2, SCREEN_HEIGHT - LINE_WIDTH / 2),
                          direction=Line.DOWN)
 
-        self.up_left = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
-                            (LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 + LINE_WIDTH), direction=Line.LEFT)
-        self.down_left = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
-                              (LINE_WIDTH, SCREEN_HEIGHT - (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 - LINE_WIDTH),
+        self.up_left = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 2,
+                            (LINE_WIDTH / 2, (SCREEN_HEIGHT - GOAL_HEIGHT) / 4), direction=Line.LEFT)
+        self.down_left = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 2,
+                              (LINE_WIDTH / 2, SCREEN_HEIGHT - (SCREEN_HEIGHT - GOAL_HEIGHT) / 4),
                               direction=Line.LEFT)
 
-        self.up_right = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
-                             (SCREEN_WIDTH - LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 + LINE_WIDTH),
+        self.up_right = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 2,
+                             (SCREEN_WIDTH - LINE_WIDTH/2, (SCREEN_HEIGHT - GOAL_HEIGHT) / 4),
                              direction=Line.RIGHT)
-        self.down_right = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - LINE_WIDTH - GOAL_HEIGHT) / 2,
-                               (SCREEN_WIDTH - LINE_WIDTH,
-                                SCREEN_HEIGHT - (SCREEN_HEIGHT - GOAL_HEIGHT) / 4 - LINE_WIDTH),
+        self.down_right = Line(game, LINE_WIDTH, (SCREEN_HEIGHT - GOAL_HEIGHT) / 2,
+                               (SCREEN_WIDTH - LINE_WIDTH/2,
+                                SCREEN_HEIGHT - (SCREEN_HEIGHT - GOAL_HEIGHT) / 4),
                                direction=Line.RIGHT)
 
         self.lines = (self.up, self.down, self.up_left, self.down_left, self.up_right, self.down_right)
@@ -191,10 +191,10 @@ class Team:
         self.player_groups[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
         self.players = [player for player_group in self.player_groups for player in player_group.players]
 
-    def change_player(self):
+    def change_player(self, increase):
         self.player_groups[self.current_player].apply_velocity(pg.math.Vector2(0, 0))
         self.player_groups[self.current_player].set_state(BaseSurface.DEFAULT_STATE)
-        self.current_player = self.current_player + 1
+        self.current_player = self.current_player + increase
         self.current_player = self.current_player % len(self.player_groups)
         self.player_groups[self.current_player].set_state(PlayerSurface.ACTIVE_STATE)
 
@@ -234,15 +234,15 @@ class Score(BaseSprite):
         self.team0 = 0
         self.team1 = 0
         self.surface = TextSurface()
-        self.surface.set_text("Score: " + str(self.team0) + " | " + str(self.team1))
+        self.surface.set_text(str(self.team0) + " | " + str(self.team1))
 
     def update_score(self, team0 = None, team1 = None):
         if team0 is not None:
             self.team0 = team0
         if team1 is not None:
             self.team1 = team1
-        self.surface.set_text("Score: " + str(self.team0) + " | " + str(self.team1))
+        self.surface.set_text(str(self.team0) + " | " + str(self.team1))
 
     def get_rect(self):
-        return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 10))
+        return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 0))
 

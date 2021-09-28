@@ -80,4 +80,4 @@ class Score(BaseSprite):
         self.surface.set_text("Score: " + str(self.team0) + " | " + str(self.team1))
 
     def get_rect(self):
-        return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 10))
+        return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 100))

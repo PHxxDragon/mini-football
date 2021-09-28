@@ -44,7 +44,7 @@ class PressKeyText(BaseSprite):
     def __init__(self, game):
         super().__init__(game)
         self.surface = TextSurface()
-        self.surface.set_text("Press Enter Key To Start")
+        self.surface.set_text("Press any key to start")
 
     def get_rect(self):
         return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2))
@@ -66,4 +66,4 @@ class Score(BaseSprite):
         self.surface.set_text("Your final score: " + str(self.team0) + " | " + str(self.team1))
 
     def get_rect(self):
-        return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 30))
+        return self.surface.get_surface().get_rect(midtop=(SCREEN_WIDTH/2, 100))
