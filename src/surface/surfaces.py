@@ -64,7 +64,7 @@ class FieldSurface(BaseSurface):
         super().__init__()
         global _FIELD_IMAGE
         if _FIELD_IMAGE is None:
-            image_name = "field.png"
+            image_name = "field_with_brick.png"
             _FIELD_IMAGE = load_image(image_name)
         image = _FIELD_IMAGE
         image = pg.transform.scale(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
